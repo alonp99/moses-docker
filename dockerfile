@@ -22,10 +22,11 @@ RUN git clone https://github.com/moses-smt/mosesdecoder.git
 # Install Moses.
 WORKDIR /mosesdecoder
 RUN make -f /mosesdecoder/contrib/Makefiles/install-dependencies.gmake
+RUN /mosesdecoder/compile.sh  --max-kenlm-order=9
 
 #  COMPILE MOSES (Takes awhile...)
 # /usr/bin/bjam -j16 --max-kenlm-order=9 --with-cmph=/path/to/cmph
-# 
-# RUN ./bjam  -j16 --max-kenlm-order=9 --with-cmph=/home/moses/cmph-2.0 
-# RUN ./bjam --with-boost=/home/moses/Downloads/boost_1_60_0 --with-cmph=/home/moses/cmph-2.0 --with-irstlm=/home/moses/irstlm -j12
+#  /mosesdecoder/compile.sh -j16 --max-kenlm-order=9 
+# RUN ./bjam  -j16 --max-kenlm-order=9 --with-cmph=/mosesdecoder/opt 
+# RUN ./bjam --with-boost=/home/moses/Downloads/boost_1_60_0 --with-cmph=/mosesdecoder/opt --with-irstlm=/home/moses/irstlm -j12
 #WORKDIR /home/moses/
