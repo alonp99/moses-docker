@@ -23,9 +23,6 @@ RUN apt-get update && apt-get install -y \
    wget \
    zlib1g-dev 
 
-RUN pip install \
-   flask \
-   flask-api
 
 RUN mkdir -p /home/moses
 WORKDIR /home/moses
@@ -52,6 +49,16 @@ WORKDIR /home/moses/cmph-2.0
 RUN ./configure
 RUN make
 RUN make install
+
+#  Get Newest Boost
+RUN mkdir /home/moses/Downloads
+WORKDIR /home/moses/Downloads
+RUN wget https://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.tar.gz
+RUN tar xf boost_1_60_0.tar.gz
+RUN rm boost_1_60_0.tar.gz
+WORKDIR boost_1_60_0/
+RUN ./bootstrap.sh
+RUN ./b2 -j4 --prefix=$PWD --libdir=$PWD/lib64 --layout=system link=static install || echo FAILURE
 
 WORKDIR /home/moses/mosesdecoder
 #  COMPILE MOSES (Takes awhile...)
