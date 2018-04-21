@@ -1,66 +1,28 @@
-FROM ubuntu:14.04
-LABEL Description="Install Moses SMT" Version="1.0"
+FROM ubuntu:latest
 
-RUN apt-get update && apt-get install -y \
-   automake \
-   build-essential \
-   curl \
-   g++ \
-   git \
-   graphviz \
-   imagemagick \
-   libboost-all-dev \
-   libbz2-dev \
-   libgoogle-perftools-dev \
-   liblzma-dev \
-   libtool \
-   make \
-   python-dev \
-   python-pip \
-   python-yaml \
-   subversion \
-   unzip \
-   wget \
-   zlib1g-dev 
+MAINTAINER Momo <mo@mo.com>
+LABEL description="Basic Moses docker container for Ubuntu"
 
+# Update Ubuntu.
+RUN apt-get update
+RUN apt-get install -y apt-utils debconf-utils
+RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+RUN apt-get update && apt-get -y upgrade
 
-RUN mkdir -p /home/moses
-WORKDIR /home/moses
-RUN git clone https://github.com/moses-smt/mosesdecoder
-RUN mkdir moses-models
+# Install some necessary tools.
+RUN apt-get install -y nano perl
 
-#  giza-pp-master
-RUN wget -O giza-pp.zip "http://github.com/moses-smt/giza-pp/archive/master.zip" 
-RUN unzip giza-pp.zip
-RUN rm giza-pp.zip
-RUN mv giza-pp-master giza-pp
-WORKDIR /home/moses/giza-pp
-RUN make
-WORKDIR /home/moses
-RUN mkdir external-bin-dir
-RUN cp giza-pp/GIZA++-v2/GIZA++ external-bin-dir
-RUN cp giza-pp/GIZA++-v2/snt2cooc.out external-bin-dir
-RUN cp giza-pp/mkcls-v2/mkcls external-bin-dir
+# Install Moses dependencies.
+RUN apt-get install -y libboost-all-dev
+RUN apt-get install -y build-essential git-core pkg-config automake libtool wget zlib1g-dev python-dev libbz2-dev cmake
 
-#  CMPH
-RUN wget -O cmph-2.0.tar.gz "http://downloads.sourceforge.net/project/cmph/cmph/cmph-2.0.tar.gz?r=&ts=1426574097&use_mirror=cznic"
-RUN tar zxvf cmph-2.0.tar.gz
-WORKDIR /home/moses/cmph-2.0
-RUN ./configure
-RUN make
-RUN make install
+# Clone the repos we need.
+RUN git clone https://github.com/moses-smt/mosesdecoder.git
 
-#  Get Newest Boost
-RUN mkdir /home/moses/Downloads
-WORKDIR /home/moses/Downloads
-RUN wget https://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.tar.gz
-RUN tar xf boost_1_60_0.tar.gz
-RUN rm boost_1_60_0.tar.gz
-WORKDIR boost_1_60_0/
-RUN ./bootstrap.sh
-RUN ./b2 -j4 --prefix=$PWD --libdir=$PWD/lib64 --layout=system link=static install || echo FAILURE
+# Install Moses.
+WORKDIR /mosesdecoder
+RUN make -f /mosesdecoder/contrib/Makefiles/install-dependencies.gmake
 
-WORKDIR /home/moses/mosesdecoder
 #  COMPILE MOSES (Takes awhile...)
 # /usr/bin/bjam -j16 --max-kenlm-order=9 --with-cmph=/path/to/cmph
 # 
